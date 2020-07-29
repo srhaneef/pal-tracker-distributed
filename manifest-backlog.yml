@@ -7,7 +7,6 @@ applications:
     routes:
       - route: backlog-pal-hanief-pankaj.cfapps.io
     path: Applications/BacklogServer/bin/Release/netcoreapp3.1/publish
-    env:
-      REGISTRATION_SERVER_ENDPOINT: https://registration-pal-hanief-pankaj.cfapps.io
     services:
       - tracker-backlog-database
+      - tracker-service-registry
