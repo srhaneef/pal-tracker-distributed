@@ -1,0 +1,11 @@
+---
+applications:
+  - name: tracker-registration
+    instances: 1
+    memory: 256M
+    disk_quota: 512M
+    routes:
+      - route: registration-pal-[initials].apps.evans.pal.pivotal.io
+    path: Applications/RegistrationServer/bin/Release/netcoreapp3.1/publish
+    services:
+      - tracker-registration-database

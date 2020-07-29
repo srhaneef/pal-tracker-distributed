@@ -1,0 +1,5 @@
+rootProject.name = 'platform-services'
+
+include(':ConfigServer')
+include(':EurekaServer')
+include(':OAuthServer')

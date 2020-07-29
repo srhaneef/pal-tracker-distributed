@@ -1,0 +1,33 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.5.RELEASE' apply(false)
+    id 'io.spring.dependency-management' version '1.0.9.RELEASE' apply(false)
+    id 'java-library'
+}
+
+group = 'io.pivotal.pal.tracker'
+version = '3.2.10'
+
+ext {
+    // Java Version
+    sourceCompatibility = '11'
+
+    // Applications and Platform Services Versions
+    springBootVersion = '2.2.5.RELEASE'
+    springCloudVersion = 'Hoxton.SR3'
+}
+
+subprojects {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java-library'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
+    }
+}

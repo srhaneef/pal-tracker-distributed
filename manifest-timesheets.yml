@@ -1,0 +1,13 @@
+---
+applications:
+  - name: tracker-timesheets
+    instances: 1
+    memory: 256M
+    disk_quota: 512M
+    routes:
+      - route: timesheets-pal-[initials].apps.evans.pal.pivotal.io
+    path: Applications/TimesheetsServer/bin/Release/netcoreapp3.1/publish
+    env:
+      REGISTRATION_SERVER_ENDPOINT: https://registration-pal-[initials].apps.evans.pal.pivotal.io
+    services:
+      - tracker-timesheets-database
