@@ -30,7 +30,7 @@ jobs:
       - run:
           name: Create test database and migrate
           command: |
-            mysql -uroot < Databases/create_databases.sql
+            mysql -u root < Databases/create_databases.sql
             flyway-*/flyway -url="jdbc:mysql://localhost:3306/tracker_allocations_dotnet_test" -user=tracker_dotnet -password=password  -locations=filesystem:Databases/allocations-database migrate
             flyway-*/flyway -url="jdbc:mysql://localhost:3306/tracker_backlog_dotnet_test" -user=tracker_dotnet -password=password  -locations=filesystem:Databases/backlog-database migrate
             flyway-*/flyway -url="jdbc:mysql://localhost:3306/tracker_registration_dotnet_test" -user=tracker_dotnet -password=password  -locations=filesystem:Databases/registration-database migrate
