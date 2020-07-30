@@ -2,8 +2,13 @@
 using System.Net.Http;
 using Backlog.Data;
 using Backlog.ProjectClient;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,6 +18,7 @@ using Steeltoe.CloudFoundry.Connector.MySql.EFCore;
 using Steeltoe.Common.Discovery;
 using Steeltoe.Discovery.Client;
 using Steeltoe.Management.CloudFoundry;
+using Steeltoe.Security.Authentication.CloudFoundry;
 
 namespace BacklogServer
 {
@@ -30,8 +36,23 @@ namespace BacklogServer
         {
             services.AddCloudFoundryActuators(Configuration);
 
-            services.AddControllers();
-            
+            services.AddControllers(mvcOptions =>
+            {
+                if (!Configuration.GetValue("DISABLE_AUTH", false))
+                {
+                    // Set Authorized as default policy
+                    var policy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                        .RequireAuthenticatedUser()
+                        .RequireClaim("scope", "uaa.resource")
+                        .Build();
+
+                    mvcOptions.Filters.Add(new AuthorizeFilter(policy));
+                }
+            });
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddCloudFoundryJwtBearer(Configuration);
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();            
             services.AddDbContext<StoryContext>(options => options.UseMySql(Configuration));
             services.AddScoped<IStoryDataGateway, StoryDataGateway>();
 
@@ -46,7 +67,12 @@ namespace BacklogServer
                 };
 
                var logger = sp.GetService<ILogger<ProjectClient>>();
-               return new ProjectClient(httpClient, logger);
+               
+                var contextAccessor = sp.GetService<IHttpContextAccessor>();
+                return new ProjectClient(
+                    httpClient, logger,
+                    () => contextAccessor.HttpContext.GetTokenAsync("access_token")
+                );
             });
          services.AddHystrixMetricsStream(Configuration); 
             

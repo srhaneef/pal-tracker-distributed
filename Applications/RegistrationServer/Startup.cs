@@ -1,7 +1,10 @@
 ﻿using Accounts;
 using Accounts.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +12,7 @@ using Projects.Data;
 using Steeltoe.CloudFoundry.Connector.MySql.EFCore;
 using Steeltoe.Discovery.Client;
 using Steeltoe.Management.CloudFoundry;
+using Steeltoe.Security.Authentication.CloudFoundry;
 using Users.Data;
 
 namespace RegistrationServer
@@ -27,7 +31,22 @@ namespace RegistrationServer
         {
             services.AddCloudFoundryActuators(Configuration);
 
-            services.AddControllers();
+            services.AddControllers(mvcOptions =>
+            {
+                if (!Configuration.GetValue("DISABLE_AUTH", false))
+                {
+                    // Set Authorized as default policy
+                    var policy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                        .RequireAuthenticatedUser()
+                        .RequireClaim("scope", "uaa.resource")
+                        .Build();
+
+                    mvcOptions.Filters.Add(new AuthorizeFilter(policy));
+                }
+            });
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddCloudFoundryJwtBearer(Configuration);
 
             services.AddScoped<IAccountDataGateway, AccountDataGateway>();
             services.AddDbContext<AccountContext>(options => options.UseMySql(Configuration));
